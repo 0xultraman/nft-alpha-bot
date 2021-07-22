@@ -109,7 +109,7 @@ if __name__ == "__main__":
     following_old = (
         json.load(open("following.json")) if os.path.exists("following.json") else {}
     )
-    following_old = (
+    relevant = (
         json.load(open("relevant.json")) if os.path.exists("relevant.json") else {}
     )
 
