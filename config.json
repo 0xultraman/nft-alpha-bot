@@ -1,0 +1,31 @@
+{
+  "discord": "https://discord.com/api/webhooks/",
+  "friends_to_fetch": 100,
+  "check_interval": 7200,
+  "relevant_interval_days": 7,
+  "thereshold_relevant": 2,
+  "api_key": "",
+  "api_secret": "",
+  "bearer_token": "",
+  "access_token": "",
+  "access_token_secret": "",
+  "twitter": [
+    "Brypto_",
+    "Screentimes",
+    "NateAlexNFT",
+    "0xmons",
+    "0xEther",
+    "cryptodaddydrew",
+    "Cryptopathic",
+    "iamDCinvestor",
+    "dan_opensea",
+    "J1mmyeth",
+    "Justintrimble",
+    "Seedphrase",
+    "ChrisUniverseB",
+    "RealAllenHena",
+    "andrwwang",
+    "InsiderFuture",
+    "beaniemaxi"
+  ]
+}
