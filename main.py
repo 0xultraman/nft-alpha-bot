@@ -3,27 +3,28 @@ import json
 import time
 import os
 from datetime import datetime
+import requests
 
 config = None
 api = None
 users = None
 following_old = None
-relevant = None
+watchlist = None
 
 
 def main():
     while True:
         # cleanup irrelevant accounts from watchlist
-        if relevant is not None:
-            for user in list(relevant):
+        if watchlist is not None:
+            for user in list(watchlist):
                 if datetime.strptime(
-                    relevant[user]["since"], "%Y-%m-%d %H:%M:%S"
+                    watchlist[user]["since"], "%Y-%m-%d %H:%M:%S"
                 ) < datetime.now() - datetime.timedelta(
                     days=config["relevant_interval_days"]
                 ):
-                    del relevant[user]
+                    del watchlist[user]
 
-        # update info
+        # fetch and update info
         following = {}
         variations = {}
         for username in users:
@@ -61,42 +62,49 @@ def main():
                     }
             else:
                 following[username] = following_old[username]
+        following_old = following
 
+        # backup following
         with open("following.json", "w") as f:
-            json.dump(following, f, indent=4)
+            json.dump(following_old, f, indent=4)
 
-        # computation of relevant accounts
-        for usr in variations:
-            if variations[usr]["new_num"] > variations[usr]["old_num"]:
+        # computation of accounts in watchlist
+        for username in variations:
+            if variations[username]["new_num"] > variations[username]["old_num"]:
                 diff = list(
-                    set(variations[usr]["new_friends"])
-                    - set(variations[usr]["old_friends"])
+                    set(variations[username]["new_friends"])
+                    - set(variations[username]["old_friends"])
                 )
                 if diff is not None:
                     for friend in diff:
-                        if friend in relevant:
-                            relevant[friend]["num"] += 1
-                            relevant[friend]["followed_by"].append(usr)
+                        if friend in watchlist:
+                            watchlist[friend]["num"] += 1
+                            watchlist[friend]["followed_by"].append(username)
                         else:
-                            relevant[friend] = {
+                            watchlist[friend] = {
                                 "since": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                                 "num": 1,
                                 "announced": False,
-                                "followed_by": [usr],
+                                "followed_by": [username],
                             }
 
-        # announcement
-        for usr in relevant:
-            if relevant[usr]["num"] >= config["min_relevant_followers"]:
-                if not relevant[user]["announced"]:
-                    print(
-                        f"{relevant[usr]['followed_by']} started following user {usr}"
-                    )
-                    relevant[usr]["announced"] = True
+        # send notification
+        for usr in watchlist:
+            if watchlist[usr]["num"] >= config["min_relevant_followers"]:
+                if not watchlist[user]["announced"]:
+                    data = {
+                        "content": f"{', '.join(watchlist[usr]['followed_by'])} started following user {usr}."
+                        f"https://twitter.com/{usr}",
+                        "username": "NFT Alpha Bot",
+                    }
+                    requests.post(config["discord"], json=data)
+                    watchlist[usr]["announced"] = True
 
-        with open("relevant.json", "w") as f:
-            json.dump(relevant, f, indent=4)
+        # backup watchlist
+        with open("watchlist.json", "w") as f:
+            json.dump(watchlist, f, indent=4)
 
+        # check again in check_interval seconds
         time.sleep(config["check_interval"])
 
 
@@ -109,8 +117,8 @@ if __name__ == "__main__":
     following_old = (
         json.load(open("following.json")) if os.path.exists("following.json") else {}
     )
-    relevant = (
-        json.load(open("relevant.json")) if os.path.exists("relevant.json") else {}
+    watchlist = (
+        json.load(open("watchlist.json")) if os.path.exists("watchlist.json") else {}
     )
 
     main()
