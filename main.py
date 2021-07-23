@@ -93,7 +93,7 @@ def main():
             if watchlist[usr]["num"] >= config["min_relevant_followers"]:
                 if not watchlist[user]["announced"]:
                     data = {
-                        "content": f"{', '.join(watchlist[usr]['followed_by'])} started following user {usr}."
+                        "content": f"@{', @'.join(watchlist[usr]['followed_by'])} started following user @{usr}."
                         f"https://twitter.com/{usr}",
                         "username": "NFT Alpha Bot",
                     }
